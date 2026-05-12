@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#ffffff" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Sky</title>
+  <link rel="manifest" href="manifest.json" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black: #0a0a0a;
+      --white: #f5f5f2;
+      --gray: #888;
+      --light-gray: #ddd;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--white);
+      color: var(--black);
+      font-family: 'DM Mono', monospace;
+      overflow: hidden;
+    }
+
+    #app {
+      display: flex;
+      flex-direction: column;
+      height: 100dvh;
+      max-width: 430px;
+      margin: 0 auto;
+      padding: 0;
+      position: relative;
+    }
+
+    /* ─── HEADER ─── */
+    #header {
+      padding: 52px 28px 12px;
+      opacity: 0;
+      animation: fadeUp 0.6s ease forwards 0.1s;
+    }
+
+    #location-name {
+      font-family: 'DM Serif Display', serif;
+      font-size: 26px;
+      letter-spacing: -0.5px;
+      line-height: 1.1;
+      color: var(--black);
+    }
+
+    #location-sub {
+      font-size: 11px;
+      color: var(--gray);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-top: 3px;
+    }
+
+    #clock {
+      font-size: 11px;
+      color: var(--gray);
+      letter-spacing: 1.5px;
+      margin-top: 2px;
+    }
+
+    /* ─── ICON AREA ─── */
+    #icon-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      opacity: 0;
+      animation: fadeUp 0.7s ease forwards 0.25s;
+    }
+
+    #weather-icon-wrap {
+      width: 180px;
+      height: 180px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    #weather-icon-wrap svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    #temp-display {
+      font-family: 'DM Serif Display', serif;
+      font-size: 72px;
+      letter-spacing: -4px;
+      margin-top: 8px;
+      line-height: 1;
+    }
+
+    #condition-label {
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--gray);
+      margin-top: 6px;
+    }
+
+    #feels-row {
+      display: flex;
+      gap: 20px;
+      margin-top: 16px;
+    }
+
+    .feels-item {
+      text-align: center;
+    }
+
+    .feels-item .val {
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .feels-item .lbl {
+      font-size: 9px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--gray);
+      margin-top: 2px;
+    }
+
+    /* ─── SUNSET ARC ─── */
+    #sunset-section {
+      padding: 0 28px 12px;
+      opacity: 0;
+      animation: fadeUp 0.7s ease forwards 0.4s;
+    }
+
+    #sunset-label {
+      font-size: 9px;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--gray);
+      margin-bottom: 8px;
+    }
+
+    #sunset-arc-wrap {
+      position: relative;
+      height: 64px;
+      width: 100%;
+    }
+
+    #sunset-arc-wrap svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    #sunset-times {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      letter-spacing: 1px;
+      color: var(--gray);
+      margin-top: 2px;
+    }
+
+    /* ─── FORECAST ─── */
+    #forecast-section {
+      border-top: 1px solid var(--light-gray);
+      opacity: 0;
+      animation: fadeUp 0.7s ease forwards 0.55s;
+    }
+
+    #forecast-label {
+      font-size: 9px;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--gray);
+      padding: 12px 28px 8px;
+    }
+
+    .forecast-row {
+      display: flex;
+      align-items: center;
+      padding: 10px 28px;
+      border-bottom: 1px solid var(--light-gray);
+      gap: 12px;
+    }
+
+    .forecast-row:last-child {
+      border-bottom: none;
+    }
+
+    .f-day {
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      width: 36px;
+      flex-shrink: 0;
+    }
+
+    .f-icon {
+      width: 26px;
+      height: 26px;
+      flex-shrink: 0;
+    }
+
+    .f-bar-wrap {
+      flex: 1;
+      height: 3px;
+      background: var(--light-gray);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .f-bar {
+      height: 100%;
+      background: var(--black);
+      border-radius: 2px;
+      transform-origin: left;
+      animation: barGrow 0.8s ease forwards;
+      transform: scaleX(0);
+    }
+
+    .f-temp {
+      font-size: 12px;
+      font-weight: 500;
+      width: 42px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .f-cond {
+      font-size: 9px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--gray);
+      width: 60px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    /* ─── LOADING ─── */
+    #loading {
+      position: fixed;
+      inset: 0;
+      background: var(--white);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      transition: opacity 0.5s ease;
+    }
+
+    #loading.hide {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .load-dot {
+      width: 6px; height: 6px;
+      background: var(--black);
+      border-radius: 50%;
+      display: inline-block;
+      margin: 0 3px;
+      animation: bounce 1.2s infinite;
+    }
+    .load-dot:nth-child(2) { animation-delay: 0.2s; }
+    .load-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    #load-text {
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--gray);
+      margin-top: 16px;
+    }
+
+    /* ─── ERROR ─── */
+    #error-msg {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: var(--white);
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 12px;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--gray);
+      z-index: 99;
+    }
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes bounce {
+      0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+      40%           { transform: scale(1);   opacity: 1; }
+    }
+
+    @keyframes barGrow {
+      to { transform: scaleX(1); }
+    }
+
+    /* weather-specific icon animations */
+    @keyframes spinSlow {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+    @keyframes floatCloud {
+      0%,100% { transform: translateX(0); }
+      50%     { transform: translateX(6px); }
+    }
+    @keyframes rainFall {
+      0%   { transform: translateY(0); opacity: 1; }
+      100% { transform: translateY(8px); opacity: 0; }
+    }
+    @keyframes flashBolt {
+      0%,90%,100% { opacity: 1; }
+      92%,98%     { opacity: 0.1; }
+    }
+    @keyframes driftFog {
+      0%,100% { transform: translateX(0); opacity: 0.8; }
+      50%     { transform: translateX(5px); opacity: 1; }
+    }
+    @keyframes windSlide {
+      0%   { transform: translateX(-6px); opacity: 0; }
+      30%  { opacity: 1; }
+      100% { transform: translateX(8px); opacity: 0; }
+    }
+    @keyframes sunPulse {
+      0%,100% { transform: scale(1); }
+      50%     { transform: scale(1.04); }
+    }
+  </style>
+</head>
+<body>
+
+<div id="loading">
+  <div>
+    <span class="load-dot"></span>
+    <span class="load-dot"></span>
+    <span class="load-dot"></span>
+  </div>
+  <div id="load-text">Reading the sky</div>
+</div>
+
+<div id="error-msg">
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r="0.5" fill="#888"/></svg>
+  <span id="error-text">Could not load weather</span>
+  <span style="font-size:9px;letter-spacing:1px;">Check connection &amp; allow location</span>
+</div>
+
+<div id="app">
+  <!-- HEADER -->
+  <div id="header">
+    <div id="location-name">—</div>
+    <div id="location-sub">—</div>
+    <div id="clock">—</div>
+  </div>
+
+  <!-- MAIN ICON -->
+  <div id="icon-area">
+    <div id="weather-icon-wrap"></div>
+    <div id="temp-display">—°</div>
+    <div id="condition-label">—</div>
+    <div id="feels-row">
+      <div class="feels-item"><div class="val" id="feels">—</div><div class="lbl">Feels</div></div>
+      <div class="feels-item"><div class="val" id="humidity">—</div><div class="lbl">Humidity</div></div>
+      <div class="feels-item"><div class="val" id="wind-speed">—</div><div class="lbl">Wind</div></div>
+      <div class="feels-item"><div class="val" id="uv">—</div><div class="lbl">UV</div></div>
+    </div>
+  </div>
+
+  <!-- SUNSET ARC -->
+  <div id="sunset-section">
+    <div id="sunset-label">Daylight</div>
+    <div id="sunset-arc-wrap">
+      <svg id="sunset-svg" viewBox="0 0 320 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- arc path -->
+        <path id="arc-path" d="M 20 58 Q 160 -10 300 58" stroke="#ddd" stroke-width="1.5" fill="none" stroke-dasharray="4 4"/>
+        <!-- progress arc (animated) -->
+        <path id="arc-progress" d="M 20 58 Q 160 -10 300 58" stroke="#0a0a0a" stroke-width="1.5" fill="none"
+              stroke-dasharray="0 9999" />
+        <!-- sun dot -->
+        <circle id="sun-dot" cx="20" cy="58" r="5" fill="#0a0a0a"/>
+        <!-- horizon line -->
+        <line x1="10" y1="60" x2="310" y2="60" stroke="#ddd" stroke-width="1"/>
+      </svg>
+    </div>
+    <div id="sunset-times">
+      <span id="rise-time">—</span>
+      <span id="sunset-countdown" style="color:var(--black);font-weight:500;">—</span>
+      <span id="set-time">—</span>
+    </div>
+  </div>
+
+  <!-- FORECAST -->
+  <div id="forecast-section">
+    <div id="forecast-label">Next Few Days</div>
+    <div id="forecast-rows"></div>
+  </div>
+</div>
+
+<script>
+const API_KEY = '88fb21178fca66f7e0ee1d8bcb88ab63';
+const DAYS = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+
+// ── SVG ICONS ──────────────────────────────────────────────────────────────
+const ICONS = {
+  clear_day: `<svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <g style="animation: sunPulse 3s ease-in-out infinite; transform-origin:40px 40px">
+      <circle cx="40" cy="40" r="14" fill="#0a0a0a"/>
+      ${[0,30,60,90,120,150,180,210,240,270,300,330].map(a=>{
+        const r=a*Math.PI/180, x1=40+22*Math.sin(r), y1=40-22*Math.cos(r),
+              x2=40+30*Math.sin(r), y2=40-30*Math.cos(r);
+        return `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#0a0a0a" stroke-width="3" stroke-linecap="round"/>`;
+      }).join('')}
+    </g>
+  </svg>`,
+
+  clear_night: `<svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M 50 20 Q 30 28 32 48 Q 34 64 52 66 Q 30 70 20 54 Q 10 36 24 24 Q 34 14 50 20 Z" fill="#0a0a0a"/>
+  </svg>`,
+
+  partly_cloudy: `<svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <g style="animation: spinSlow 20s linear infinite; transform-origin:46px 28px">
+      <circle cx="46" cy="28" r="12" fill="#0a0a0a"/>
+      ${[0,45,90,135,180,225,270,315].map(a=>{
+        const r=a*Math.PI/180, x1=46+16*Math.sin(r), y1=28-16*Math.cos(r),
+              x2=46+21*Math.sin(r), y2=28-21*Math.cos(r);
+        return `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#0a0a0a" stroke-width="2.5" stroke-linecap="round"/>`;
+      }).join('')}
+    </g>
+    <g style="animation: floatCloud 4s ease-in-out infinite">
+      <ellipse cx="30" cy="52" rx="18" ry="12" fill="#0a0a0a"/>
+      <ellipse cx="20" cy="56" rx="12" ry="9" fill="#0a0a0a"/>
+      <ellipse cx="44" cy="56" rx="12" ry="9" fill="#0a0a0a"/>
+    </g>
+  </svg>`,
+
+  cloudy: `<svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <g style="animation: floatCloud 5s ease-in-out infinite">
+      <ellipse cx="40" cy="42" rx="24" ry="15" fill="#0a0a0a"/>
+      <ellipse cx="26" cy="48" rx="14" ry="11" fill="#0a0a0a"/>
+      <ellipse cx="54" cy="48" rx="14" ry="11" fill="#0a0a0a"/>
+      <ellipse cx="40" cy="34" rx="14" ry="12" fill="#0a0a0a"/>
+    </g>
+  </svg>`,
+
+  rain: `<svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <g style="animation: floatCloud 4s ease-in-out infinite">
+      <ellipse cx="40" cy="32" rx="22" ry="13" fill="#0a0a0a"/>
+      <ellipse cx="26" cy="38" rx="12" ry="10" fill="#0a0a0a"/>
+      <ellipse cx="54" cy="38" rx="12" ry="10" fill="#0a0a0a"/>
+      <ellipse cx="40" cy="24" rx="12" ry="10" fill="#0a0a0a"/>
+    </g>
+    <line x1="28" y1="54" x2="24" y2="64" stroke="#0a0a0a" stroke-width="2.5" stroke-linecap="round" style="animation:rainFall 1s ease-in infinite"/>
+    <line x1="40" y1="54" x2="36" y2="64" stroke="#0a0a0a" stroke-width="2.5" stroke-linecap="round" style="animation:rainFall 1s ease-in infinite 0.3s"/>
+    <line x1="52" y1="54" x2="48" y2="64" stroke="#0a0a0a" stroke-width="2.5" stroke-linecap="round" style="animation:rainFall 1s ease-in infinite 0.6s"/>
+  </svg>`,
+
+  storm: `<svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <g style="animation: floatCloud 3s ease-in-out infinite">
+      <ellipse cx="40" cy="28" rx="24" ry="14" fill="#0a0a0a"/>
+      <ellipse cx="26" cy="34" rx="13" ry="10" fill="#0a0a0a"/>
+      <ellipse cx="54" cy="34" rx="13" ry="10" fill="#0a0a0a"/>
+      <ellipse cx="40" cy="20" rx="13" ry="11" fill="#0a0a0a"/>
+    </g>
+    <polygon points="44,44 36,58 42,58 38,72 52,52 44,52" fill="#0a0a0a" style="animation:flashBolt 3s ease-in-out infinite"/>
+  </svg>`,
+
+  fog: `<svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <line x1="14" y1="30" x2="66" y2="30" stroke="#0a0a0a" stroke-width="4" stroke-linecap="round" style="animation:driftFog 3s ease-in-out infinite"/>
+    <line x1="10" y1="42" x2="70" y2="42" stroke="#0a0a0a" stroke-width="4" stroke-linecap="round" style="animation:driftFog 3s ease-in-out infinite 0.5s"/>
+    <line x1="18" y1="54" x2="62" y2="54" stroke="#0a0a0a" stroke-width="4" stroke-linecap="round" style="animation:driftFog 3s ease-in-out infinite 1s"/>
+  </svg>`,
+
+  wind: `<svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="20" cy="28" rx="8" ry="6" fill="#0a0a0a" style="animation:floatCloud 4s ease-in-out infinite"/>
+    <ellipse cx="14" cy="32" rx="6" ry="5" fill="#0a0a0a" style="animation:floatCloud 4s ease-in-out infinite"/>
+    <ellipse cx="28" cy="32" rx="7" ry="5" fill="#0a0a0a" style="animation:floatCloud 4s ease-in-out infinite"/>
+    <line x1="10" y1="40" x2="66" y2="40" stroke="#0a0a0a" stroke-width="3" stroke-linecap="round" style="animation:windSlide 1.8s ease-in-out infinite"/>
+    <line x1="10" y1="50" x2="58" y2="50" stroke="#0a0a0a" stroke-width="3" stroke-linecap="round" style="animation:windSlide 1.8s ease-in-out infinite 0.3s"/>
+    <line x1="10" y1="60" x2="50" y2="60" stroke="#0a0a0a" stroke-width="3" stroke-linecap="round" style="animation:windSlide 1.8s ease-in-out infinite 0.6s"/>
+    <path d="M60 40 Q68 40 68 48 Q68 56 60 56" stroke="#0a0a0a" stroke-width="3" fill="none" stroke-linecap="round" style="animation:windSlide 1.8s ease-in-out infinite 0.15s"/>
+  </svg>`,
+};
+
+function getIconKey(weatherId, isDay) {
+  if (weatherId >= 200 && weatherId < 300) return 'storm';
+  if (weatherId >= 300 && weatherId < 600) return 'rain';
+  if (weatherId >= 600 && weatherId < 700) return 'fog';
+  if (weatherId >= 700 && weatherId < 800) {
+    if ([771,781].includes(weatherId)) return 'wind';
+    return 'fog';
+  }
+  if (weatherId === 800) return isDay ? 'clear_day' : 'clear_night';
+  if (weatherId === 801 || weatherId === 802) return 'partly_cloudy';
+  if (weatherId >= 803) return 'cloudy';
+  return isDay ? 'clear_day' : 'clear_night';
+}
+
+function getConditionLabel(weatherId) {
+  if (weatherId >= 200 && weatherId < 300) return 'Thunderstorm';
+  if (weatherId >= 300 && weatherId < 400) return 'Drizzle';
+  if (weatherId >= 500 && weatherId < 600) return 'Rain';
+  if (weatherId >= 600 && weatherId < 700) return 'Snow';
+  if (weatherId === 701 || weatherId === 741) return 'Fog';
+  if (weatherId === 721) return 'Haze';
+  if (weatherId === 731 || weatherId === 761) return 'Dust';
+  if (weatherId >= 700 && weatherId < 800) return 'Mist';
+  if (weatherId === 800) return 'Clear Sky';
+  if (weatherId === 801) return 'Few Clouds';
+  if (weatherId === 802) return 'Partly Cloudy';
+  if (weatherId === 803) return 'Mostly Cloudy';
+  if (weatherId === 804) return 'Overcast';
+  return 'Unknown';
+}
+
+function smallIconSVG(weatherId, isDay=true) {
+  const key = getIconKey(weatherId, isDay);
+  const m = {
+    clear_day: `<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4" fill="#0a0a0a"/>${[0,60,120,180,240,300].map(a=>{const r=a*Math.PI/180,x1=12+6*Math.sin(r),y1=12-6*Math.cos(r),x2=12+8.5*Math.sin(r),y2=12-8.5*Math.cos(r);return`<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#0a0a0a" stroke-width="1.5" stroke-linecap="round"/>`;}).join('')}</svg>`,
+    clear_night: `<svg viewBox="0 0 24 24" fill="none"><path d="M15 6Q9 8 10 15Q11 20 16 20Q9 22 6 16Q3 10 8 7Q11 4 15 6Z" fill="#0a0a0a"/></svg>`,
+    partly_cloudy: `<svg viewBox="0 0 24 24" fill="none"><circle cx="15" cy="9" r="4" fill="#0a0a0a"/><ellipse cx="10" cy="16" rx="7" ry="4.5" fill="#0a0a0a"/><ellipse cx="6" cy="17.5" rx="4" ry="3" fill="#0a0a0a"/><ellipse cx="15" cy="17.5" rx="4" ry="3" fill="#0a0a0a"/></svg>`,
+    cloudy: `<svg viewBox="0 0 24 24" fill="none"><ellipse cx="12" cy="14" rx="8" ry="5" fill="#0a0a0a"/><ellipse cx="8" cy="16" rx="5" ry="4" fill="#0a0a0a"/><ellipse cx="16" cy="16" rx="5" ry="4" fill="#0a0a0a"/><ellipse cx="12" cy="11" rx="5" ry="4.5" fill="#0a0a0a"/></svg>`,
+    rain: `<svg viewBox="0 0 24 24" fill="none"><ellipse cx="12" cy="10" rx="7" ry="4.5" fill="#0a0a0a"/><ellipse cx="8" cy="12" rx="4" ry="3.5" fill="#0a0a0a"/><ellipse cx="16" cy="12" rx="4" ry="3.5" fill="#0a0a0a"/><line x1="9" y1="17" x2="8" y2="21" stroke="#0a0a0a" stroke-width="1.5" stroke-linecap="round"/><line x1="13" y1="17" x2="12" y2="21" stroke="#0a0a0a" stroke-width="1.5" stroke-linecap="round"/><line x1="17" y1="17" x2="16" y2="21" stroke="#0a0a0a" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+    storm: `<svg viewBox="0 0 24 24" fill="none"><ellipse cx="12" cy="9" rx="7" ry="4.5" fill="#0a0a0a"/><ellipse cx="8" cy="11" rx="4" ry="3.5" fill="#0a0a0a"/><ellipse cx="16" cy="11" rx="4" ry="3.5" fill="#0a0a0a"/><polygon points="13,14 10,19 12.5,19 11,24 16,16 13,16" fill="#0a0a0a"/></svg>`,
+    fog: `<svg viewBox="0 0 24 24" fill="none"><line x1="4" y1="9" x2="20" y2="9" stroke="#0a0a0a" stroke-width="1.5" stroke-linecap="round"/><line x1="3" y1="13" x2="21" y2="13" stroke="#0a0a0a" stroke-width="1.5" stroke-linecap="round"/><line x1="5" y1="17" x2="19" y2="17" stroke="#0a0a0a" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+    wind: `<svg viewBox="0 0 24 24" fill="none"><line x1="3" y1="12" x2="19" y2="12" stroke="#0a0a0a" stroke-width="1.5" stroke-linecap="round"/><line x1="3" y1="16" x2="17" y2="16" stroke="#0a0a0a" stroke-width="1.5" stroke-linecap="round"/><path d="M17 12 Q21 12 21 15 Q21 18 17 18" stroke="#0a0a0a" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>`,
+  };
+  return m[key] || m.cloudy;
+}
+
+// ── CLOCK ──────────────────────────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  const t = now.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: true });
+  document.getElementById('clock').textContent = t + '  IST';
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ── SUNSET ARC ─────────────────────────────────────────────────────────────
+function drawSunsetArc(sunrise, sunset) {
+  const now = Date.now() / 1000;
+  const total = sunset - sunrise;
+  const elapsed = Math.min(Math.max(now - sunrise, 0), total);
+  const pct = elapsed / total; // 0 to 1
+
+  // Arc path points (matching SVG path M 20 58 Q 160 -10 300 58)
+  // Approximate arc length
+  const arcLen = 330; // approximate pixel length of the dashed arc
+  const progressLen = pct * arcLen;
+
+  document.getElementById('arc-progress').setAttribute('stroke-dasharray', `${progressLen} 9999`);
+
+  // Move sun dot along arc (quadratic bezier parametric)
+  const t = pct;
+  const p0x=20, p0y=58, p1x=160, p1y=-10, p2x=300, p2y=58;
+  const bx = (1-t)*(1-t)*p0x + 2*(1-t)*t*p1x + t*t*p2x;
+  const by = (1-t)*(1-t)*p0y + 2*(1-t)*t*p1y + t*t*p2y;
+  document.getElementById('sun-dot').setAttribute('cx', bx.toFixed(1));
+  document.getElementById('sun-dot').setAttribute('cy', by.toFixed(1));
+
+  // Format times
+  const fmt = ts => new Date(ts*1000).toLocaleTimeString('en-IN', {timeZone:'Asia/Kolkata', hour:'2-digit', minute:'2-digit', hour12:true});
+  document.getElementById('rise-time').textContent = fmt(sunrise);
+  document.getElementById('set-time').textContent = fmt(sunset);
+
+  // Countdown to sunset
+  const remaining = sunset - now;
+  if (remaining > 0) {
+    const h = Math.floor(remaining/3600);
+    const m = Math.floor((remaining%3600)/60);
+    document.getElementById('sunset-countdown').textContent = `${h}h ${m}m to sunset`;
+  } else {
+    document.getElementById('sunset-countdown').textContent = 'After sunset';
+  }
+}
+
+// ── MAIN FETCH ─────────────────────────────────────────────────────────────
+async function fetchWeather(lat, lon) {
+  const base = `https://api.openweathermap.org/data/2.5`;
+  const [cur, fore] = await Promise.all([
+    fetch(`${base}/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`).then(r=>r.json()),
+    fetch(`${base}/forecast?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`).then(r=>r.json()),
+  ]);
+
+  if (cur.cod !== 200) throw new Error(cur.message);
+
+  // ── Location
+  document.getElementById('location-name').textContent = cur.name || 'Your Location';
+  document.getElementById('location-sub').textContent = (cur.sys?.country || '') + (cur.coord ? `  ·  ${lat.toFixed(4)}°N ${lon.toFixed(4)}°E` : '');
+
+  // ── Main weather
+  const id = cur.weather[0].id;
+  const isDay = cur.dt > cur.sys.sunrise && cur.dt < cur.sys.sunset;
+  const iconKey = getIconKey(id, isDay);
+  document.getElementById('weather-icon-wrap').innerHTML = ICONS[iconKey];
+  document.getElementById('temp-display').textContent = Math.round(cur.main.temp) + '°';
+  document.getElementById('condition-label').textContent = getConditionLabel(id);
+  document.getElementById('feels').textContent = Math.round(cur.main.feels_like) + '°';
+  document.getElementById('humidity').textContent = cur.main.humidity + '%';
+  document.getElementById('wind-speed').textContent = Math.round(cur.wind.speed * 3.6) + ' km/h';
+
+  // UV — need one more call
+  try {
+    const uv = await fetch(`${base}/uvi?lat=${lat}&lon=${lon}&appid=${API_KEY}`).then(r=>r.json());
+    document.getElementById('uv').textContent = (uv.value || 0).toFixed(1);
+  } catch { document.getElementById('uv').textContent = '—'; }
+
+  // ── Sunset arc
+  drawSunsetArc(cur.sys.sunrise, cur.sys.sunset);
+  setInterval(() => drawSunsetArc(cur.sys.sunrise, cur.sys.sunset), 60000);
+
+  // ── Forecast — next 3 unique days
+  const seen = new Set();
+  const days = [];
+  for (const item of fore.list) {
+    const d = new Date(item.dt * 1000);
+    const dayKey = d.toLocaleDateString('en-IN', {timeZone:'Asia/Kolkata',weekday:'short'}).toUpperCase().slice(0,3);
+    if (!seen.has(dayKey) && days.length < 3) {
+      seen.add(dayKey);
+      days.push({ day: dayKey, id: item.weather[0].id, temp: Math.round(item.main.temp), label: getConditionLabel(item.weather[0].id) });
+    }
+    if (days.length >= 3) break;
+  }
+
+  const maxT = Math.max(...days.map(d=>d.temp));
+  const minT = Math.min(...days.map(d=>d.temp));
+  const range = maxT - minT || 1;
+
+  const rowsEl = document.getElementById('forecast-rows');
+  rowsEl.innerHTML = '';
+  days.forEach((d, i) => {
+    const barPct = ((d.temp - minT) / range * 0.6 + 0.2).toFixed(2);
+    const row = document.createElement('div');
+    row.className = 'forecast-row';
+    row.style.animationDelay = `${0.6 + i * 0.1}s`;
+    row.innerHTML = `
+      <div class="f-day">${d.day}</div>
+      <div class="f-icon">${smallIconSVG(d.id)}</div>
+      <div class="f-bar-wrap"><div class="f-bar" style="width:${barPct*100}%;animation-delay:${0.8+i*0.15}s"></div></div>
+      <div class="f-temp">${d.temp}°</div>
+      <div class="f-cond">${d.label}</div>
+    `;
+    rowsEl.appendChild(row);
+  });
+
+  // ── Hide loader
+  document.getElementById('loading').classList.add('hide');
+  setTimeout(() => document.getElementById('loading').style.display='none', 600);
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────────
+function showError(msg) {
+  document.getElementById('loading').style.display = 'none';
+  const e = document.getElementById('error-msg');
+  e.style.display = 'flex';
+  document.getElementById('error-text').textContent = msg || 'Could not load weather';
+}
+
+if (navigator.geolocation) {
+  navigator.geolocation.getCurrentPosition(
+    pos => fetchWeather(pos.coords.latitude, pos.coords.longitude).catch(()=>showError('API error')),
+    () => {
+      // Fallback: Devanahalli, Bangalore
+      fetchWeather(13.2419, 77.7169).catch(()=>showError('API error'));
+    },
+    { timeout: 8000, enableHighAccuracy: true }
+  );
+} else {
+  fetchWeather(13.2419, 77.7169).catch(()=>showError('API error'));
+}
+</script>
+</body>
+</html>
+
